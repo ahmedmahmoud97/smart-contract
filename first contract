@@ -1,0 +1,59 @@
+pragma solidity ^0.5.1;
+
+contract withdrawal {
+    uint public moneyamount;
+    address payable jobownerAddress;
+    address payable workerAddress;
+
+    function Purchase( uint _data ) public payable {
+        jobownerAddress = msg.sender;
+        moneyamount = _data;
+        require( moneyamount == msg.value);
+    }
+
+    modifier condition(bool _condition) {
+        require(_condition);
+        _;
+    }
+
+    modifier onlyworkerAddress() {
+        require(msg.sender == workerAddress);
+        _;
+    }
+
+    modifier onlyjobownerAddress() {
+        require(msg.sender == jobownerAddress);
+        _;
+    }
+
+
+    event failurePurchase();
+    event confirmedPurchase();
+    event receivedItem();
+
+    function failurPurchase()public  
+        onlyjobownerAddress
+    {
+       emit failurePurchase();
+
+         jobownerAddress.transfer(address(this).balance);
+
+    }
+
+    function purchaseConfirm() public
+        condition(msg.value == moneyamount)
+        payable
+    {
+   emit confirmedPurchase();
+        workerAddress = msg.sender;
+    }
+
+
+    function receivedConfirm() public
+        onlyworkerAddress
+    {
+        emit receivedItem();
+        workerAddress.transfer(moneyamount);
+        jobownerAddress.transfer(address(this).balance);
+    }
+}
